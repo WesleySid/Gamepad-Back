@@ -46,13 +46,22 @@ router.post("/signup", fileUpload(), async (req, res) => {
     const hash = SHA256(req.body.password + salt).toString(encBase64);
     const token = uid2(32);
 
-    // Gérer le cas où aucune image n'est fournie
+    // Gérer le cas où une image est fournie
     let profilePictureUrl = null;
     if (req.files && req.files.picture) {
-      const picture = convertToBase64(req.files.picture[0]);
+      console.log("req.files", req.files.picture);
+      const picture = req.files.picture;
+      console.log("picture", picture);
       if (picture) {
-        const cloudinaryResponse = await cloudinary.uploader.upload(picture);
-        profilePictureUrl = cloudinaryResponse.secure_url; // Récupérer l'URL sécurisée de l'image
+        const pictureBase64 = convertToBase64(req.files.picture); // Convertir le fichier en base64
+        console.log("pictureBase64", pictureBase64);
+        if (pictureBase64) {
+          const cloudinaryResponse = await cloudinary.uploader.upload(
+            pictureBase64
+          );
+          profilePictureUrl = cloudinaryResponse.secure_url; // Récupérer l'URL sécurisée de l'image
+          console.log("profilePicture URL", profilePictureUrl);
+        }
       }
     }
 
@@ -130,6 +139,7 @@ router.get("/profile", async (req, res) => {
       _id: user._id,
       username: user.username,
       email: user.email,
+      picture: user.profilePictureUrl,
     });
   } catch (error) {
     console.error("Error fetching profile data:", error.message);
